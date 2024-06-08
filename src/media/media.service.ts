@@ -1,23 +1,83 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { MediaEntity } from './media.entity';
 import { Model } from 'mongoose';
-import { UploadMediaRequest } from './media.dto';
+import {
+  GetMediaListRequest,
+  MediaQueueResizeJob,
+  ResizeMediaRequest,
+  UploadMediaRequest,
+} from './media.dto';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from 'src/config/env';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import { nanoid } from 'nanoid';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { mediaQueueJobs, mediaQueueName } from './media.utils';
 
 @Injectable()
 export class MediaService {
   constructor(
-    @InjectModel(MediaEntity.name) private mediaModel: Model<MediaEntity>
+    @InjectModel(MediaEntity.name) private mediaModel: Model<MediaEntity>,
+    @InjectQueue(mediaQueueName) private mediaQueue: Queue<MediaQueueResizeJob>,
+    private configService: ConfigService<EnvConfig>,
   ) { }
 
-  list(): Promise<MediaEntity[]> {
+  get(id: string): Promise<MediaEntity> {
     return this.mediaModel
-      .find()
+      .findById(id)
+      .orFail(() => new NotFoundException())
       .lean()
       .exec();
   }
 
-  upload({ file }: UploadMediaRequest): Promise<MediaEntity> {
+  countDocuments(): Promise<number> {
+    return this.mediaModel.countDocuments();
+  }
 
+  list({ skip, limit }: GetMediaListRequest): Promise<MediaEntity[]> {
+    return this.mediaModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+  }
+
+  async upload({ file }: UploadMediaRequest): Promise<MediaEntity> {
+    const extName = path.extname(file.originalName);
+    const newFileName = `${nanoid()}${extName}`;
+    const uploadPath = this.configService.getOrThrow('STORAGE_PATH');
+    const model = new this.mediaModel({
+      path: newFileName,
+      name: file.originalName,
+      filesize: file.size,
+    });
+
+    await fs.writeFile(path.join(uploadPath, newFileName), file.buffer);
+    await model.save();
+
+    return model.toObject();
+  }
+
+  async resize(id: string, size: ResizeMediaRequest): Promise<void> {
+    const media = await this.get(id);
+    await this.mediaQueue.add(mediaQueueJobs.resize, {
+      size,
+      media,
+    });
+  }
+
+  async delete(id: string): Promise<void> {
+    const uploadPath = this.configService.getOrThrow('STORAGE_PATH');
+
+    // Deletes from the database first
+    const media = await this.mediaModel.findByIdAndDelete(id);
+
+    // Only then deletes the media from the filesystem
+    await fs.unlink(path.join(uploadPath, media.path));
   }
 }
