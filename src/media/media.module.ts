@@ -10,16 +10,13 @@ import { MediaQueueConsumer } from './media.consumer';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: MediaEntity.name, schema: MediaSchema }
+      { name: MediaEntity.name, schema: MediaSchema },
     ]),
     BullModule.registerQueue({
       name: mediaQueueName,
-    })
+    }),
   ],
-  providers: [
-    MediaService,
-    MediaQueueConsumer
-  ],
+  providers: [MediaService, MediaQueueConsumer],
   controllers: [MediaController],
 })
 export class MediaModule { }

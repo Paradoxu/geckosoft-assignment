@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from
 import { MediaService } from './media.service';
 import { MediaEntity } from './media.entity';
 import { FormDataRequest } from 'nestjs-form-data';
-import { GetMediaListRequest, ResizeMediaRequest, UploadMediaRequest } from './media.dto';
+import { GetMediaJobsRequest as GetQueuedJobsRequest, GetMediaListRequest, ResizeMediaRequest, UploadMediaRequest } from './media.dto';
 import { ApiOkPaginated, PaginatedResponse } from 'src/shared/dto/paginated-response.dto';
 
 @Controller('media')
@@ -26,6 +26,11 @@ export class MediaController {
     return new PaginatedResponse(data, total);
   }
 
+  @Get('queued-jobs')
+  async workersList(@Query() query: GetQueuedJobsRequest): Promise<unknown> {
+    return this.mediaService.queuedJobs(query);
+  }
+
   @Post()
   @FormDataRequest()
   @ApiOperation({ summary: 'Upload a new media file' })
@@ -36,7 +41,7 @@ export class MediaController {
   }
 
   @Patch('resize/:id')
-  resize(@Param('id') id: string, @Body() data: ResizeMediaRequest): Promise<void> {
+  resize(@Param('id') id: string, @Body() data: ResizeMediaRequest): Promise<string> {
     return this.mediaService.resize(id, data);
   }
 

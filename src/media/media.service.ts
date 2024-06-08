@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { MediaEntity } from './media.entity';
 import { Model } from 'mongoose';
 import {
+  GetMediaJobsRequest,
   GetMediaListRequest,
   MediaQueueResizeJob,
   ResizeMediaRequest,
@@ -19,6 +20,8 @@ import { mediaQueueJobs, mediaQueueName } from './media.utils';
 
 @Injectable()
 export class MediaService {
+  private readonly logger = new Logger(MediaService.name);
+
   constructor(
     @InjectModel(MediaEntity.name) private mediaModel: Model<MediaEntity>,
     @InjectQueue(mediaQueueName) private mediaQueue: Queue<MediaQueueResizeJob>,
@@ -63,21 +66,31 @@ export class MediaService {
     return model.toObject();
   }
 
-  async resize(id: string, size: ResizeMediaRequest): Promise<void> {
+  async resize(id: string, size: ResizeMediaRequest): Promise<string> {
     const media = await this.get(id);
-    await this.mediaQueue.add(mediaQueueJobs.resize, {
+    const job = await this.mediaQueue.add(mediaQueueJobs.resize, {
       size,
       media,
     });
+    return `Job ID: ${job.id}`;
   }
 
   async delete(id: string): Promise<void> {
     const uploadPath = this.configService.getOrThrow('STORAGE_PATH');
 
     // Deletes from the database first
-    const media = await this.mediaModel.findByIdAndDelete(id);
+    const media = await this.mediaModel
+      .findByIdAndDelete(id)
+      .orFail(() => new NotFoundException())
+      .exec();
 
     // Only then deletes the media from the filesystem
-    await fs.unlink(path.join(uploadPath, media.path));
+    await fs.unlink(path.join(uploadPath, media.path)).catch(e => this.logger.error(e));
+  }
+
+  async queuedJobs({ status }: GetMediaJobsRequest): Promise<unknown> {
+    const jobs = await this.mediaQueue.getJobs(status);
+    jobs.sort((a, b) => parseInt(b.id.toString()) - parseInt(a.id.toString()))
+    return jobs;
   }
 }
