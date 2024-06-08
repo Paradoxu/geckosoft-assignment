@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: gecko-mongo
+    environment:
+      MONGO_DB_NAME: gecko_assignment
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - 50100:27017
+    volumes:
+      - .docker/mongo:/data/db
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
+
+networks:
+  backend:
+    name: gecko-backend
+  frontend:
+    name: gecko-frontend
