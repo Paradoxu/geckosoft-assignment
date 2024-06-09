@@ -72,7 +72,7 @@ export class MediaService {
       size,
       media,
     });
-    return `Job ID: ${job.id}`;
+    return job.id.toString();
   }
 
   async delete(id: string): Promise<void> {
@@ -85,12 +85,14 @@ export class MediaService {
       .exec();
 
     // Only then deletes the media from the filesystem
-    await fs.unlink(path.join(uploadPath, media.path)).catch(e => this.logger.error(e));
+    await fs
+      .unlink(path.join(uploadPath, media.path))
+      .catch((e) => this.logger.error(e));
   }
 
   async queuedJobs({ status }: GetMediaJobsRequest): Promise<unknown> {
     const jobs = await this.mediaQueue.getJobs(status);
-    jobs.sort((a, b) => parseInt(b.id.toString()) - parseInt(a.id.toString()))
+    jobs.sort((a, b) => parseInt(b.id.toString()) - parseInt(a.id.toString()));
     return jobs;
   }
 }
