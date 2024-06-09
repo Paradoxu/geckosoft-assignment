@@ -23,7 +23,9 @@ COPY ./package.json ./
 RUN pnpm install
 
 COPY ./src src
+
 RUN pnpm run build
+RUN pnpm run build:doc
 
 
 # Creates an image for production
@@ -45,6 +47,7 @@ RUN pnpm install -r --offline --prod
 
 # Bundle app source
 COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=builder /app/docs ./docs
 
 USER node
 EXPOSE 3000

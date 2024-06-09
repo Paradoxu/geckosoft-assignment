@@ -3,7 +3,8 @@
 On a new terminal tab run within the root of the project context:
 > docker compose up -d
 
-On the browser head to [Swagger UI](http://localhost:3000/swagger`) which should be running on the port 3000.
+- On the browser head to [Swagger UI](http://localhost:3000/swagger`) which should be running on the port 3000.
+- On the browser head to [Documentation UI](http://localhost:3000/docs`) which should be running on the port 3000.
 
 <br /> 
 

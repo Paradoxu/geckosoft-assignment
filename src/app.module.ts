@@ -6,10 +6,16 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
 import { BullModule } from '@nestjs/bull';
 import { toMs } from 'ms-typescript';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 
 @Module({
   imports: [
     MediaModule,
+    ServeStaticModule.forRoot({
+      serveRoot: '/docs',
+      rootPath: path.join(__dirname, '..', 'docs'),
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath:
