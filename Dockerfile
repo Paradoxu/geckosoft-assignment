@@ -7,7 +7,6 @@ RUN apk add --no-cache libc6-compat
 RUN npm i -g pnpm
 
 RUN mkdir -p /app
-
 WORKDIR /app
 
 # Change the owner of the app directory
@@ -50,4 +49,4 @@ COPY --chown=node:node --from=builder /app/dist ./dist
 USER node
 EXPOSE 3000
 
-ENTRYPOINT  ["pnpm", "run", "start:prod"]
+CMD ["pnpm", "run", "start:prod"]

@@ -3,8 +3,18 @@
 On a new terminal tab run within the root of the project context:
 > docker compose up -d
 
-On the browser head to `http://localhost:3000/swagger` to see the swagger UI.
+On the browser head to [Swagger UI](http://localhost:3000/swagger`) which should be running on the port 3000.
 
+<br /> 
+
+# Run unit tests
+
+On a terminal window run the below command: 
+> docker build -f Dockerfile_test -t geckosoft-test .
+
+> docker run --env-file .env.test geckosoft-test
+
+<br /> <br /> 
 # Architecture
 
 The stack used is composed by:
