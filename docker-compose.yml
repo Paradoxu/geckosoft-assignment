@@ -4,18 +4,15 @@ services:
     image: mongo:7.0
     container_name: gecko-mongo
     environment:
-      MONGO_DB_NAME: gecko_assignment
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       TZ: ${TZ}
     ports:
       - 50100:27017
-    volumes:
-      - .docker/mongo:/data/db
     restart: unless-stopped
     networks:
       - backend
-      - frontend
 
   redis:
     image: redis:latest
@@ -28,10 +25,26 @@ services:
       test: ["CMD", "redis-cli", "ping"]
     networks:
       - backend
-      - frontend
+
+  api:
+    build: .
+    container_name: gecko-api
+    environment:
+      MONGO_CONNECITON_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:50100/${MONGO_DB_NAME}
+      REDIS_CONNECTION_URL: redis://:${REDIS_PASSWORD}@redis:50101
+    depends_on:
+      - mongo
+      - redis
+    links:
+      - mongo:mongo
+      - redis:redis
+    env_file:
+      - ./.env.stage
+    restart: no
+    networks:
+      - backend
 
 networks:
   backend:
     name: gecko-backend
-  frontend:
-    name: gecko-frontend
+
