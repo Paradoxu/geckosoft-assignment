@@ -22,7 +22,7 @@ import { toMs } from 'ms-typescript';
       useFactory: async (config: ConfigService<EnvConfig>) => {
         await ConfigModule.envVariablesLoaded;
         return {
-          uri: config.getOrThrow('MONGO_CONNECITON_URL'),
+          uri: config.getOrThrow('MONGO_CONNECTION_URL'),
           authSource: 'admin',
         };
       },

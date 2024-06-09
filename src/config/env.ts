@@ -6,7 +6,7 @@ export const configSchema = z.object({
     .string()
     .default('3000')
     .transform((v) => parseInt(v, 10)),
-  MONGO_CONNECITON_URL: z.string(),
+  MONGO_CONNECTION_URL: z.string(),
   STORAGE_PATH: z.string(),
 
   REDIS_CONNECTION_URL: z.string(),

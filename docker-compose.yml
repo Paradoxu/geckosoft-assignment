@@ -30,14 +30,16 @@ services:
     build: .
     container_name: gecko-api
     environment:
-      MONGO_CONNECITON_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:50100/${MONGO_DB_NAME}
+      MONGO_CONNECTION_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${MONGO_DB_NAME}
       REDIS_CONNECTION_URL: redis://:${REDIS_PASSWORD}@redis:50101
     depends_on:
       - mongo
       - redis
     links:
-      - mongo:mongo
-      - redis:redis
+      - mongo
+      - redis
+    ports:
+      - 3000:3000
     env_file:
       - ./.env.stage
     restart: no
