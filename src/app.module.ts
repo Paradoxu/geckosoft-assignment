@@ -35,15 +35,18 @@ import { toMs } from 'ms-typescript';
       inject: [ConfigService],
       useFactory: async (config: ConfigService<EnvConfig>) => {
         await ConfigModule.envVariablesLoaded;
-        console.log(config.getOrThrow('WORKER_TIMEOUT'));
+
         return {
           url: config.getOrThrow('REDIS_CONNECTION_URL'),
           defaultJobOptions: {
             attempts: 5,
-            removeOnComplete: config.getOrThrow('WORKER_MAX_COMPLETE_JOBS_ON_QUEUE'),
+            removeOnComplete: config.getOrThrow(
+              'WORKER_MAX_COMPLETE_JOBS_ON_QUEUE',
+            ),
             removeOnFail: config.getOrThrow('WORKER_MAX_FAILED_JOBS_ON_QUEUE'),
             timeout: config.getOrThrow('WORKER_TIMEOUT'),
-            backoffStrategy: (attemptsMade: number) => attemptsMade * toMs('30s'),
+            backoffStrategy: (attemptsMade: number) =>
+              attemptsMade * toMs('30s'),
           },
           redis: {
             name: 'gecko-worker',
