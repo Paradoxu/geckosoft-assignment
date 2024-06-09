@@ -27,6 +27,7 @@ export class MediaController {
   }
 
   @Get('queued-jobs')
+  @ApiOperation({ summary: 'A debugger endpoint to fetch the current jobs queue state' })
   async workersList(@Query() query: GetQueuedJobsRequest): Promise<unknown> {
     return this.mediaService.queuedJobs(query);
   }
@@ -41,6 +42,7 @@ export class MediaController {
   }
 
   @Patch('resize/:id')
+  @ApiOperation({ summary: 'Resizes the image file with the given ID' })
   resize(@Param('id') id: string, @Body() data: ResizeMediaRequest): Promise<string> {
     return this.mediaService.resize(id, data);
   }
